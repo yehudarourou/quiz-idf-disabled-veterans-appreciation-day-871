@@ -1,0 +1,1103 @@
+```html
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>חידון, יום ההוקרה לפצועי צה"ל</title>
+    <!-- טעינת גופנים עבריים מודרניים מ-Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <!-- טעינת Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- טעינת ספריית html2canvas לצילום ושמירת התוצאה -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- טעינת ספריית canvas-confetti לאנימציית קונפטי -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        /* הגדרות בסיס וטיפוגרפיה */
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.12);
+            --glass-bg-strong: rgba(20, 30, 52, 0.72);
+            --glass-border: rgba(255, 255, 255, 0.22);
+            --glass-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Heebo', 'Assistant', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: radial-gradient(circle at 15% 20%, #1e3a5f 0%, #0f172a 55%, #090d16 100%);
+            color: #f8fafc;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        /* אלמנטים דקורטיביים מרחפים ברקע ליצירת עומק Glassmorphism */
+        .bg-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            pointer-events: none;
+            animation: floatOrb 14s ease-in-out infinite alternate;
+        }
+        .orb-1 {
+            width: 380px;
+            height: 380px;
+            background: rgba(56, 189, 248, 0.22);
+            top: -80px;
+            left: -80px;
+        }
+        .orb-2 {
+            width: 420px;
+            height: 420px;
+            background: rgba(245, 158, 11, 0.16);
+            bottom: -100px;
+            right: -60px;
+            animation-delay: -5s;
+        }
+        .orb-3 {
+            width: 280px;
+            height: 280px;
+            background: rgba(16, 185, 129, 0.15);
+            top: 45%;
+            left: 55%;
+            animation-delay: -9s;
+        }
+
+        @keyframes floatOrb {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(30px, -25px) scale(1.08); }
+        }
+
+        /* לוגו קבוע בצד ימין למעלה */
+        .fixed-logo-container {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.14);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 16px;
+            padding: 8px 14px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.25s ease;
+        }
+        .fixed-logo-container:hover {
+            transform: scale(1.03);
+        }
+        .fixed-logo-container img {
+            max-height: 48px;
+            width: auto;
+            display: block;
+            object-fit: contain;
+        }
+
+        /* כרטיס Glassmorphism ראשי */
+        .glass-card {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0.06) 100%);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            border-radius: 28px;
+        }
+
+        /* כרטיסי תשובות לחיצים */
+        .option-card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1.5px solid rgba(255, 255, 255, 0.18);
+            border-radius: 18px;
+            transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .option-card:hover:not(.disabled) {
+            background: rgba(255, 255, 255, 0.17);
+            border-color: rgba(56, 189, 248, 0.65);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+        }
+        .option-card:active:not(.disabled) {
+            transform: scale(0.985);
+        }
+        .option-card.selected {
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.35), rgba(59, 130, 246, 0.35));
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25), 0 12px 28px rgba(14, 165, 233, 0.25);
+        }
+
+        /* תג אות (א, ב, ג, ד) */
+        .letter-badge {
+            min-width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.1rem;
+            transition: all 0.25s ease;
+        }
+        .option-card.selected .letter-badge {
+            background: #38bdf8;
+            color: #0f172a;
+            border-color: #7dd3fc;
+        }
+
+        /* מצב חזרה (Review Mode) - עיצוב חיווי תשובות */
+        .review-correct-selected {
+            background: rgba(16, 185, 129, 0.28) !important;
+            border: 2px solid #10b981 !important;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
+        }
+        .review-correct-selected .letter-badge {
+            background: #10b981 !important;
+            color: #ffffff !important;
+            border-color: #34d399 !important;
+        }
+
+        .review-wrong-selected {
+            background: rgba(239, 68, 68, 0.28) !important;
+            border: 2px solid #ef4444 !important;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.22);
+        }
+        .review-wrong-selected .letter-badge {
+            background: #ef4444 !important;
+            color: #ffffff !important;
+            border-color: #f87171 !important;
+        }
+
+        /* תשובה נכונה שהתלמיד פספס - ירוק בהיר / חיוור */
+        .review-correct-hint {
+            background: rgba(134, 239, 172, 0.16) !important;
+            border: 1.5px dashed rgba(134, 239, 172, 0.75) !important;
+        }
+        .review-correct-hint .letter-badge {
+            background: rgba(134, 239, 172, 0.35) !important;
+            color: #dcfce7 !important;
+            border-color: rgba(134, 239, 172, 0.7) !important;
+        }
+
+        /* כפתורים ראשיים */
+        .btn-primary {
+            background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+            color: white;
+            font-weight: 700;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.38);
+            transition: all 0.25s ease;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 30px rgba(37, 99, 235, 0.5);
+            filter: brightness(1.06);
+        }
+        .btn-primary:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-glass {
+            background: rgba(255, 255, 255, 0.12);
+            color: #f8fafc;
+            font-weight: 600;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            transition: all 0.25s ease;
+        }
+        .btn-glass:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.22);
+            transform: translateY(-2px);
+        }
+        .btn-glass:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* אנימציות כניסה למסכים */
+        .fade-slide-in {
+            animation: fadeSlideIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        @keyframes fadeSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(16px) scale(0.985);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* קנבס קונפטי פנימי כגיבוי */
+        #fallback-confetti-canvas {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        /* הודעת Toast מעוצבת במקום alert */
+        #toast-box {
+            position: fixed;
+            bottom: 56px;
+            left: 50%;
+            transform: translateX(-50%) translateY(30px);
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(56, 189, 248, 0.5);
+            color: #f8fafc;
+            padding: 12px 24px;
+            border-radius: 999px;
+            font-weight: 600;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.35s ease;
+            z-index: 1100;
+        }
+        #toast-box.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- אלמנטים מרחפים ברקע -->
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+
+    <!-- קנבס קונפטי -->
+    <canvas id="fallback-confetti-canvas"></canvas>
+
+    <!-- לוגו קבוע בפינה הימנית העליונה לאורך כל השלבים -->
+    <div class="fixed-logo-container" id="logo-wrapper">
+        <img src="logo.png" alt="לוגו" onerror="handleLogoFallback(this)">
+    </div>
+
+    <!-- מיכל ראשי ממורכז -->
+    <main class="relative z-10 flex-grow flex items-center justify-center px-4 pt-24 pb-8 sm:px-6">
+        <div class="w-full max-w-3xl">
+
+            <!-- ================= מסך 1: מסך פתיחה ================= -->
+            <section id="screen-start" class="glass-card p-6 sm:p-10 text-center fade-slide-in">
+                <!-- איור אלגנטי בנושא החידון (מסע, הר, תקווה והוקרה) -->
+                <div class="mx-auto mb-6 w-full max-w-md rounded-2xl overflow-hidden border border-white/20 shadow-xl bg-gradient-to-b from-sky-900/60 to-slate-900/80 p-4">
+                    <svg viewBox="0 0 420 200" class="w-full h-auto block" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="איור הוקרה ותקווה">
+                        <defs>
+                            <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#0ea5e9" stop-opacity="0.35"/>
+                                <stop offset="100%" stop-color="#0f172a" stop-opacity="0.1"/>
+                            </linearGradient>
+                            <linearGradient id="sunGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#fde047"/>
+                                <stop offset="100%" stop-color="#f59e0b"/>
+                            </linearGradient>
+                            <linearGradient id="mountMain" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.75"/>
+                                <stop offset="100%" stop-color="#1e3a8a" stop-opacity="0.9"/>
+                            </linearGradient>
+                            <linearGradient id="mountSide" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#0284c7" stop-opacity="0.55"/>
+                                <stop offset="100%" stop-color="#0f172a" stop-opacity="0.95"/>
+                            </linearGradient>
+                        </defs>
+                        <!-- רקע שמיים -->
+                        <rect width="420" height="200" rx="16" fill="url(#skyGrad)"/>
+                        <!-- הילת שמש של תקווה וזריחה -->
+                        <circle cx="210" cy="82" r="54" fill="#fbbf24" opacity="0.16"/>
+                        <circle cx="210" cy="82" r="34" fill="url(#sunGrad)"/>
+                        <!-- קרני אור עדינות -->
+                        <g stroke="#fde68a" stroke-width="2" stroke-linecap="round" opacity="0.55">
+                            <line x1="210" y1="30" x2="210" y2="18"/>
+                            <line x1="168" y1="46" x2="159" y2="37"/>
+                            <line x1="252" y1="46" x2="261" y2="37"/>
+                            <line x1="152" y1="82" x2="140" y2="82"/>
+                            <line x1="268" y1="82" x2="280" y2="82"/>
+                        </g>
+                        <!-- הרים (סמל למסע הטרק וההתגברות) -->
+                        <polygon points="40,185 135,92 230,185" fill="url(#mountSide)"/>
+                        <polygon points="195,185 295,88 390,185" fill="url(#mountSide)"/>
+                        <polygon points="105,185 210,72 315,185" fill="url(#mountMain)"/>
+                        <!-- פסגת ההר מוארת -->
+                        <polygon points="210,72 186,98 202,94 210,103 219,93 234,98" fill="#e0f2fe" opacity="0.9"/>
+                        <!-- ענפי זית משני הצדדים (סמל צה"ל והוקרה) -->
+                        <path d="M95,165 C75,145 70,115 85,90" fill="none" stroke="#34d399" stroke-width="3" stroke-linecap="round"/>
+                        <ellipse cx="76" cy="145" rx="8" ry="4" transform="rotate(-35 76 145)" fill="#34d399"/>
+                        <ellipse cx="72" cy="126" rx="8" ry="4" transform="rotate(-20 72 126)" fill="#34d399"/>
+                        <ellipse cx="77" cy="107" rx="8" ry="4" transform="rotate(-5 77 107)" fill="#34d399"/>
+                        <ellipse cx="89" cy="136" rx="7" ry="3.5" transform="rotate(35 89 136)" fill="#6ee7b7"/>
+                        <ellipse cx="86" cy="117" rx="7" ry="3.5" transform="rotate(40 86 117)" fill="#6ee7b7"/>
+
+                        <path d="M325,165 C345,145 350,115 335,90" fill="none" stroke="#34d399" stroke-width="3" stroke-linecap="round"/>
+                        <ellipse cx="344" cy="145" rx="8" ry="4" transform="rotate(35 344 145)" fill="#34d399"/>
+                        <ellipse cx="348" cy="126" rx="8" ry="4" transform="rotate(20 348 126)" fill="#34d399"/>
+                        <ellipse cx="343" cy="107" rx="8" ry="4" transform="rotate(5 343 107)" fill="#34d399"/>
+                        <ellipse cx="331" cy="136" rx="7" ry="3.5" transform="rotate(-35 331 136)" fill="#6ee7b7"/>
+                        <ellipse cx="334" cy="117" rx="7" ry="3.5" transform="rotate(-40 334 117)" fill="#6ee7b7"/>
+                        <!-- בסיס קרקע מעוגל -->
+                        <path d="M25,185 Q210,172 395,185" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
+                    </svg>
+                </div>
+
+                <!-- תגית עליונה -->
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-sky-400/15 border border-sky-300/30 text-sky-200 text-sm font-semibold mb-4">
+                    <span>✨</span>
+                    <span>פעילות חינוכית אינטראקטיבית</span>
+                </div>
+
+                <!-- כותרת החידון המדויקת -->
+                <h1 class="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight mb-4 drop-shadow">
+                    חידון, יום ההוקרה לפצועי צה"ל
+                </h1>
+
+                <p class="text-slate-200/90 text-base sm:text-lg max-w-xl mx-auto mb-8 leading-relaxed">
+                    מוזמנים לבחון את הידע שלכם בעקבות סיפורו מעורר ההשראה של דוד כהן על התמודדות, צמיחה ותקווה.
+                </p>
+
+                <!-- פרטי משחק מהירים -->
+                <div class="grid grid-cols-3 gap-3 max-w-md mx-auto mb-8 text-sm">
+                    <div class="bg-white/10 border border-white/15 rounded-2xl p-3">
+                        <div class="text-sky-300 font-extrabold text-lg">6</div>
+                        <div class="text-slate-300 text-xs">שאלות</div>
+                    </div>
+                    <div class="bg-white/10 border border-white/15 rounded-2xl p-3">
+                        <div class="text-amber-300 font-extrabold text-lg">10 נק'</div>
+                        <div class="text-slate-300 text-xs">לכל שאלה</div>
+                    </div>
+                    <div class="bg-white/10 border border-white/15 rounded-2xl p-3">
+                        <div class="text-emerald-300 font-extrabold text-lg">60 נק'</div>
+                        <div class="text-slate-300 text-xs">ציון מרבי</div>
+                    </div>
+                </div>
+
+                <!-- כפתור התחל -->
+                <button id="btn-start" onclick="startQuiz()" class="btn-primary px-12 py-4 text-xl inline-flex items-center justify-center gap-3 cursor-pointer">
+                    <span>התחל</span>
+                    <svg class="w-6 h-6 rotate-180" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                    </svg>
+                </button>
+            </section>
+
+            <!-- ================= מסך 2: מסך המשחק ================= -->
+            <section id="screen-quiz" class="glass-card p-6 sm:p-9 hidden">
+                <!-- חלק עליון: מונה שאלות ובר התקדמות ויזואלי -->
+                <div class="mb-7">
+                    <div class="flex items-center justify-between text-sm sm:text-base font-bold mb-2.5">
+                        <span id="question-counter" class="text-sky-300">שאלה 1 מתוך 6</span>
+                        <span id="progress-percent" class="text-slate-300">0% הושלמו</span>
+                    </div>
+                    <div class="w-full h-3.5 bg-slate-900/60 rounded-full overflow-hidden border border-white/15 p-0.5">
+                        <div id="progress-bar-fill" class="h-full rounded-full bg-gradient-to-l from-sky-400 via-blue-500 to-emerald-400 transition-all duration-500 ease-out" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <!-- כרטיס השאלה -->
+                <div id="question-container" class="fade-slide-in">
+                    <h2 id="question-text" class="text-xl sm:text-2xl md:text-3xl font-extrabold text-white leading-snug mb-7">
+                        <!-- טקסט השאלה יוזרק כאן -->
+                    </h2>
+
+                    <!-- רשימת אפשרויות התשובה (א, ב, ג, ד) -->
+                    <div id="options-list" class="space-y-3.5 mb-8">
+                        <!-- כרטיסי התשובות יוזרקו כאן -->
+                    </div>
+                </div>
+
+                <!-- כפתור המשך / סיום -->
+                <div class="flex items-center justify-between pt-2 border-t border-white/10">
+                    <span class="text-xs sm:text-sm text-slate-300/80">בחרו תשובה אחת להמשך</span>
+                    <button id="btn-next" onclick="handleNextQuestion()" disabled class="btn-primary px-8 py-3.5 text-base sm:text-lg inline-flex items-center gap-2 cursor-pointer">
+                        <span id="btn-next-label">הבא</span>
+                        <svg class="w-5 h-5 rotate-180" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                        </svg>
+                    </button>
+                </div>
+            </section>
+
+            <!-- ================= מסך 3: מסך סיום (תוצאות) ================= -->
+            <section id="screen-results" class="glass-card p-6 sm:p-10 text-center hidden">
+                <!-- אזור לכידה לצילום מסך (html2canvas) -->
+                <div id="result-capture-area" class="p-4 sm:p-6 rounded-2xl">
+                    <div class="inline-block px-4 py-1 rounded-full bg-white/10 border border-white/20 text-xs sm:text-sm font-semibold text-slate-200 mb-4">
+                        חידון, יום ההוקרה לפצועי צה"ל
+                    </div>
+
+                    <!-- אייקון גביע ופרגון (מוצג כאשר הציון מעל 80%) -->
+                    <div id="trophy-container" class="hidden mb-4 animate-bounce">
+                        <div class="mx-auto w-20 h-20 rounded-full bg-gradient-to-br from-amber-300/30 to-yellow-600/30 border-2 border-amber-300/70 flex items-center justify-center shadow-lg shadow-amber-500/25">
+                            <svg class="w-11 h-11 text-amber-300" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/>
+                            </svg>
+                        </div>
+                        <div class="mt-2 text-amber-300 font-extrabold text-lg sm:text-xl">
+                            🏆 כל הכבוד! הישג יוצא מן הכלל!
+                        </div>
+                    </div>
+
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-white mb-5">
+                        סיכום החידון שלך
+                    </h2>
+
+                    <!-- תצוגת ציון בשיטת הרמזור -->
+                    <div id="score-badge-box" class="mx-auto max-w-xs rounded-3xl p-6 mb-5 border-2 transition-all duration-300">
+                        <div class="text-sm font-semibold opacity-90 mb-1">הציון הסופי</div>
+                        <div id="final-score-value" class="text-5xl sm:text-6xl font-black tracking-tight">
+                            0 / 60
+                        </div>
+                        <div id="final-percentage-text" class="text-sm font-bold mt-2 opacity-90">
+                            (0% הצלחה)
+                        </div>
+                    </div>
+
+                    <!-- משוב מקדם למידה מותאם אישית -->
+                    <div class="bg-white/10 border border-white/15 rounded-2xl p-4 sm:p-5 max-w-xl mx-auto">
+                        <p id="feedback-message" class="text-base sm:text-lg font-medium text-slate-100 leading-relaxed">
+                            <!-- משוב יוזרק כאן -->
+                        </p>
+                    </div>
+                </div>
+
+                <!-- כפתורי פעולה במסך הסיום -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mt-7">
+                    <button onclick="startQuiz()" class="btn-primary py-3.5 px-5 text-base inline-flex items-center justify-center gap-2 cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        <span>נסה שוב</span>
+                    </button>
+
+                    <button id="btn-save-result" onclick="saveResultScreenshot()" class="btn-glass py-3.5 px-5 text-base inline-flex items-center justify-center gap-2 cursor-pointer">
+                        <svg class="w-5 h-5 text-sky-300" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        <span>שמור תוצאה</span>
+                    </button>
+
+                    <button onclick="openReviewMode()" class="btn-glass py-3.5 px-5 text-base inline-flex items-center justify-center gap-2 cursor-pointer">
+                        <svg class="w-5 h-5 text-emerald-300" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                        </svg>
+                        <span>צפה בתשובות</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- ================= מסך 4: מצב חזרה (Review Mode) ================= -->
+            <section id="screen-review" class="glass-card p-6 sm:p-9 hidden">
+                <!-- סרגל עליון של מצב חזרה -->
+                <div class="flex flex-wrap items-center justify-between gap-3 pb-4 mb-6 border-b border-white/15">
+                    <div class="flex items-center gap-2.5">
+                        <span class="px-3 py-1 rounded-full bg-sky-400/20 border border-sky-300/30 text-sky-200 text-xs sm:text-sm font-bold">
+                            מצב חזרה ובדיקת תשובות
+                        </span>
+                        <span id="review-counter" class="text-sm sm:text-base font-bold text-slate-200">
+                            שאלה 1 מתוך 6
+                        </span>
+                    </div>
+
+                    <!-- חיווי ציון מצומצם בפינה: 10 נק' / 0 נק' -->
+                    <div id="review-point-badge" class="px-3.5 py-1 rounded-xl font-extrabold text-sm border">
+                        10 נק'
+                    </div>
+                </div>
+
+                <!-- תוכן השאלה במצב חזרה -->
+                <div id="review-card-body" class="fade-slide-in">
+                    <h3 id="review-question-text" class="text-xl sm:text-2xl font-extrabold text-white leading-snug mb-6">
+                        <!-- טקסט השאלה -->
+                    </h3>
+
+                    <div id="review-options-list" class="space-y-3 mb-6">
+                        <!-- אפשרויות התשובה עם חיווי צבעוני -->
+                    </div>
+
+                    <!-- מקרא צבעים קטן וברור -->
+                    <div id="review-legend" class="text-xs sm:text-sm text-slate-300 bg-white/5 border border-white/10 rounded-xl p-3 mb-7 flex flex-wrap gap-4">
+                        <!-- יוזרק דינמית בהתאם לתשובת המשתמש -->
+                    </div>
+                </div>
+
+                <!-- כפתורי ניווט: הקודם, חזרה לתוצאות, הבא -->
+                <div class="flex items-center justify-between gap-2 pt-3 border-t border-white/10">
+                    <button id="btn-review-prev" onclick="navigateReview(-1)" class="btn-glass px-5 py-3 text-sm sm:text-base inline-flex items-center gap-2 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                        </svg>
+                        <span>הקודם</span>
+                    </button>
+
+                    <button onclick="backToResults()" class="btn-glass px-4 py-3 text-xs sm:text-sm text-sky-200 border-sky-300/30 cursor-pointer">
+                        חזרה לתוצאות
+                    </button>
+
+                    <button id="btn-review-next" onclick="navigateReview(1)" class="btn-primary px-6 py-3 text-sm sm:text-base inline-flex items-center gap-2 cursor-pointer">
+                        <span>הבא</span>
+                        <svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- הודעת Toast צפה -->
+    <div id="toast-box" role="status" aria-live="polite"></div>
+
+    <!-- פוטר זכויות יוצרים קבוע בתחתית -->
+    <footer class="relative z-10 w-full py-3.5 text-center text-slate-300/85 text-sm font-medium border-t border-white/10 bg-slate-950/30 backdrop-blur-md">
+        מו"פ אמית
+    </footer>
+
+    <script>
+        /**
+         * מאגר השאלות המקורי - שמור מילה במילה בדיוק כפי שנדרש
+         */
+        const ORIGINAL_QUESTIONS = [
+            {
+                id: 1,
+                question: "איפה דוד מספר שגר לאחר הפציעה לפני שיצא לטיול השחרור?",
+                options: [
+                    { text: "בתל אביב", isCorrect: false },
+                    { text: "בירושלים", isCorrect: false },
+                    { text: "בחופים באילת", isCorrect: true },
+                    { text: "בחיפה", isCorrect: false }
+                ]
+            },
+            {
+                id: 2,
+                question: "מה דוד עשה ביומו האחרון בטרק במהלך טיול השחרור?",
+                options: [
+                    { text: "כתב מכתב לחבריו ליחידה", isCorrect: false },
+                    { text: "השאיר את סיפור הפציעה שכתב על חמישה דפים", isCorrect: true },
+                    { text: "חזר מוקדם למחנה הבסיס", isCorrect: false },
+                    { text: "תרם את הציוד שלו לקבוצה", isCorrect: false }
+                ]
+            },
+            {
+                id: 3,
+                question: "כמה שנים שמר דוד על חמשת הדפים שבהם כתב את סיפור הפציעה שלו?",
+                options: [
+                    { text: "שנתיים", isCorrect: false },
+                    { text: "חמש שנים", isCorrect: false },
+                    { text: "שבע שנים", isCorrect: true },
+                    { text: "עשר שנים", isCorrect: false }
+                ]
+            },
+            {
+                id: 4,
+                question: "איך דוד מתאר את השינוי שחל בו בעקבות הטיול וההתמודדות?",
+                options: [
+                    { text: "מבן אדם קיצוני לבן אדם מאוזן", isCorrect: true },
+                    { text: "מבן אדם סגור לבן אדם מופנם", isCorrect: false },
+                    { text: "ממישהו שמתכנן הכל מראש למישהו ספונטני בלבד", isCorrect: false },
+                    { text: "ממישהו שמעדיף להתבודד למישהו שמנהיג קבוצות", isCorrect: false }
+                ]
+            },
+            {
+                id: 5,
+                question: "מה עזר לדוד להתחיל לחיות מחדש ולשנות את הגישה שלו לחיים?",
+                options: [
+                    { text: "ניתוק מוחלט מהסביבה הקרובה", isCorrect: false },
+                    { text: "התמקדות בחיים ובתקווה במקום במה שהיה", isCorrect: true },
+                    { text: "חזרה לשירות מילואים קרבי", isCorrect: false },
+                    { text: "כתיבת ספר על ההיסטוריה של היחידה", isCorrect: false }
+                ]
+            },
+            {
+                id: 6,
+                question: "איזו תובנה משמעותית דוד מציין לגבי אחרים שמתמודדים כמוהו?",
+                options: [
+                    { text: "שכל אחד מתמודד לבדו לחלוטין", isCorrect: false },
+                    { text: "שאין עוד אנשים שעוברים חוויות דומות", isCorrect: false },
+                    { text: "שיש מי שדואג להם והם לא לבד", isCorrect: true },
+                    { text: "שפוסט-טראומה נעלמת מיד אחרי טיול", isCorrect: false }
+                ]
+            }
+        ];
+
+        // אותיות מספור התשובות בעברית
+        const HEBREW_LETTERS = ["א", "ב", "ג", "ד"];
+        const POINTS_PER_QUESTION = 10;
+
+        // משתני מצב המשחק (State)
+        let activeQuestions = [];
+        let currentQuestionIndex = 0;
+        let selectedOptionIndex = null;
+        let userAnswers = []; // שומר עבור כל שאלה איזה אינדקס המשתמש בחר והאם צדק
+        let reviewIndex = 0;
+
+        /**
+         * טיפול אלגנטי במקרה שהקובץ logo.png אינו נמצא בתיקייה המקומית
+         */
+        function handleLogoFallback(imgElement) {
+            const wrapper = document.getElementById("logo-wrapper");
+            if (wrapper) {
+                wrapper.innerHTML = `
+                    <div class="flex items-center gap-2 text-white font-extrabold text-sm tracking-wide px-1 py-0.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-sky-400 inline-block"></span>
+                        <span>מו"פ אמית</span>
+                    </div>
+                `;
+            }
+        }
+
+        /**
+         * אלגוריתם Fisher-Yates לערבוב אקראי מלא של מערך
+         */
+        function shuffleArray(array) {
+            const copy = [...array];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
+        /**
+         * הצגת הודעת Toast קצרה בתחתית המסך (במקום alert)
+         */
+        function showToast(message) {
+            const toast = document.getElementById("toast-box");
+            toast.textContent = message;
+            toast.classList.add("show");
+            setTimeout(() => {
+                toast.classList.remove("show");
+            }, 3200);
+        }
+
+        /**
+         * מעבר נקי בין מסכי האפליקציה
+         */
+        function showScreen(screenId) {
+            const screens = ["screen-start", "screen-quiz", "screen-results", "screen-review"];
+            screens.forEach(id => {
+                const el = document.getElementById(id);
+                if (id === screenId) {
+                    el.classList.remove("hidden");
+                    el.classList.remove("fade-slide-in");
+                    void el.offsetWidth; // הפעלה מחדש של האנימציה
+                    el.classList.add("fade-slide-in");
+                } else {
+                    el.classList.add("hidden");
+                }
+            });
+        }
+
+        /**
+         * התחלת משחק חדש (או "נסה שוב") - מערבב שאלות ותשובות מחדש
+         */
+        function startQuiz() {
+            // ערבוב סדר השאלות, ובתוך כל שאלה ערבוב סדר 4 התשובות תוך שמירת הדגל isCorrect
+            const shuffledQuestions = shuffleArray(ORIGINAL_QUESTIONS).map(q => ({
+                id: q.id,
+                question: q.question,
+                options: shuffleArray(q.options)
+            }));
+
+            activeQuestions = shuffledQuestions;
+            currentQuestionIndex = 0;
+            selectedOptionIndex = null;
+            userAnswers = [];
+            reviewIndex = 0;
+
+            showScreen("screen-quiz");
+            renderCurrentQuestion();
+        }
+
+        /**
+         * רינדור השאלה הנוכחית ומסיחיה על המסך
+         */
+        function renderCurrentQuestion() {
+            const currentQ = activeQuestions[currentQuestionIndex];
+            const totalQ = activeQuestions.length;
+
+            // עדכון מונה ובר התקדמות
+            document.getElementById("question-counter").textContent = `שאלה ${currentQuestionIndex + 1} מתוך ${totalQ}`;
+            const completedPercent = Math.round((currentQuestionIndex / totalQ) * 100);
+            document.getElementById("progress-percent").textContent = `${completedPercent}% הושלמו`;
+            document.getElementById("progress-bar-fill").style.width = `${completedPercent}%`;
+
+            // עדכון כפתור הבא / סיום
+            const btnNext = document.getElementById("btn-next");
+            const btnNextLabel = document.getElementById("btn-next-label");
+            btnNext.disabled = true;
+            selectedOptionIndex = null;
+            btnNextLabel.textContent = (currentQuestionIndex === totalQ - 1) ? "סיום חידון" : "הבא";
+
+            // הנפשת כניסה לשאלה החדשה
+            const qContainer = document.getElementById("question-container");
+            qContainer.classList.remove("fade-slide-in");
+            void qContainer.offsetWidth;
+            qContainer.classList.add("fade-slide-in");
+
+            // הצגת טקסט השאלה מילה במילה
+            document.getElementById("question-text").textContent = currentQ.question;
+
+            // יצירת כרטיסי התשובות עם האותיות א, ב, ג, ד
+            const optionsList = document.getElementById("options-list");
+            optionsList.innerHTML = "";
+
+            currentQ.options.forEach((opt, idx) => {
+                const card = document.createElement("div");
+                card.className = "option-card p-4 sm:p-5 flex items-center gap-4";
+                card.setAttribute("role", "button");
+                card.setAttribute("tabindex", "0");
+                card.onclick = () => selectOption(idx);
+                card.onkeydown = (e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        selectOption(idx);
+                    }
+                };
+
+                card.innerHTML = `
+                    <div class="letter-badge shrink-0">${HEBREW_LETTERS[idx]}</div>
+                    <div class="text-base sm:text-lg font-medium text-slate-100 leading-snug">${opt.text}</div>
+                `;
+                optionsList.appendChild(card);
+            });
+        }
+
+        /**
+         * בחירת אפשרות תשובה על ידי המשתמש
+         */
+        function selectOption(optionIdx) {
+            selectedOptionIndex = optionIdx;
+            const cards = document.querySelectorAll("#options-list .option-card");
+            cards.forEach((card, idx) => {
+                if (idx === optionIdx) {
+                    card.classList.add("selected");
+                } else {
+                    card.classList.remove("selected");
+                }
+            });
+            document.getElementById("btn-next").disabled = false;
+        }
+
+        /**
+         * מעבר לשאלה הבאה או סיום החידון
+         */
+        function handleNextQuestion() {
+            if (selectedOptionIndex === null) return;
+
+            const currentQ = activeQuestions[currentQuestionIndex];
+            const chosenOption = currentQ.options[selectedOptionIndex];
+            const isCorrect = Boolean(chosenOption.isCorrect);
+
+            // שמירת הבחירה לצורך חישוב ציון ומצב חזרה
+            userAnswers.push({
+                questionObj: currentQ,
+                selectedIndex: selectedOptionIndex,
+                isCorrect: isCorrect
+            });
+
+            if (currentQuestionIndex < activeQuestions.length - 1) {
+                currentQuestionIndex++;
+                renderCurrentQuestion();
+            } else {
+                // השלמת בר ההתקדמות ל-100% לפני מעבר לתוצאות
+                document.getElementById("progress-bar-fill").style.width = "100%";
+                document.getElementById("progress-percent").textContent = "100% הושלמו";
+                setTimeout(() => {
+                    finishQuiz();
+                }, 260);
+            }
+        }
+
+        /**
+         * חישוב תוצאות, הצגת מסך סיום, רמזור, גביע וקונפטי
+         */
+        function finishQuiz() {
+            showScreen("screen-results");
+
+            const correctCount = userAnswers.filter(ans => ans.isCorrect).length;
+            const totalQuestions = activeQuestions.length;
+            const score = correctCount * POINTS_PER_QUESTION;
+            const maxScore = totalQuestions * POINTS_PER_QUESTION;
+            const percentage = Math.round((score / maxScore) * 100);
+
+            document.getElementById("final-score-value").textContent = `${score} / ${maxScore}`;
+            document.getElementById("final-percentage-text").textContent = `(${percentage}% הצלחה - ${correctCount} מתוך ${totalQuestions} תשובות נכונות)`;
+
+            const scoreBox = document.getElementById("score-badge-box");
+            const feedbackEl = document.getElementById("feedback-message");
+            const trophyContainer = document.getElementById("trophy-container");
+
+            // איפוס עיצובי רמזור קודמים
+            scoreBox.className = "mx-auto max-w-xs rounded-3xl p-6 mb-5 border-2 transition-all duration-300";
+
+            // שיטת הרמזור + משוב מקדם למידה + בדיקת מעל 80% לגביע
+            if (percentage > 80) {
+                // ירוק = גבוה (מעל 80%)
+                scoreBox.classList.add("bg-emerald-500/20", "border-emerald-400", "text-emerald-300", "shadow-lg", "shadow-emerald-500/20");
+                trophyContainer.classList.remove("hidden");
+                feedbackEl.textContent = "שליטה מרשימה ומעוררת השראה! ניכר שהקשבת לעומק לסיפורו של דוד כהן, לדרך ההתמודדות שלו ולמסר של תקווה וצמיחה.";
+            } else if (percentage >= 55) {
+                // כתום = בינוני (55% - 80%)
+                scoreBox.classList.add("bg-amber-500/20", "border-amber-400", "text-amber-300", "shadow-lg", "shadow-amber-500/20");
+                trophyContainer.classList.add("hidden");
+                feedbackEl.textContent = "יפה מאוד! הפגנת היכרות טובה עם עיקרי הסיפור של דוד. מומלץ ללחוץ על 'צפה בתשובות' כדי לחדד את הפרטים שפספסת ולחזק את הלמידה.";
+            } else {
+                // אדום = נמוך (מתחת ל-55%)
+                scoreBox.classList.add("bg-rose-500/20", "border-rose-400", "text-rose-300", "shadow-lg", "shadow-rose-500/20");
+                trophyContainer.classList.add("hidden");
+                feedbackEl.textContent = "זו הזדמנות מצוינת להעמיק בסיפור המרגש של דוד! כדאי לעבור על השאלות בכפתור 'צפה בתשובות', ללמוד מהמשוב ולנסות שוב.";
+            }
+
+            // הפעלת אנימציית קונפטי חגיגית בסיום
+            launchCelebrationConfetti();
+        }
+
+        /**
+         * אנימציית קונפטי (משתמש ב-canvas-confetti עם fallback מובנה בקנבס)
+         */
+        function launchCelebrationConfetti() {
+            if (typeof confetti === "function") {
+                const duration = 2400;
+                const end = Date.now() + duration;
+
+                (function frame() {
+                    confetti({
+                        particleCount: 5,
+                        angle: 60,
+                        spread: 55,
+                        origin: { x: 0, y: 0.65 },
+                        colors: ["#38bdf8", "#34d399", "#fbbf24", "#f87171"]
+                    });
+                    confetti({
+                        particleCount: 5,
+                        angle: 120,
+                        spread: 55,
+                        origin: { x: 1, y: 0.65 },
+                        colors: ["#38bdf8", "#34d399", "#fbbf24", "#f87171"]
+                    });
+
+                    if (Date.now() < end) {
+                        requestAnimationFrame(frame);
+                    }
+                }());
+            } else {
+                runFallbackConfetti();
+            }
+        }
+
+        /**
+         * קונפטי עצמאי בקנבס למקרה שאין חיבור ל-CDN
+         */
+        function runFallbackConfetti() {
+            const canvas = document.getElementById("fallback-confetti-canvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const colors = ["#38bdf8", "#34d399", "#fbbf24", "#f472b6", "#a78bfa"];
+            const pieces = Array.from({ length: 90 }, () => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height - canvas.height,
+                size: Math.random() * 8 + 5,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                speedY: Math.random() * 3 + 2,
+                speedX: Math.random() * 2 - 1,
+                angle: Math.random() * 360
+            }));
+
+            let frames = 0;
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                pieces.forEach(p => {
+                    p.y += p.speedY;
+                    p.x += p.speedX;
+                    p.angle += 4;
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate((p.angle * Math.PI) / 180);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+                    ctx.restore();
+                });
+                frames++;
+                if (frames < 160) {
+                    requestAnimationFrame(animate);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+            animate();
+        }
+
+        /**
+         * צילום מסך של התוצאה והורדה למחשב כקובץ PNG
+         */
+        async function saveResultScreenshot() {
+            const btn = document.getElementById("btn-save-result");
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<span>מכין תמונה...</span>`;
+
+            try {
+                if (typeof html2canvas !== "function") {
+                    throw new Error("html2canvas not available");
+                }
+
+                const targetElement = document.getElementById("screen-results");
+                const canvas = await html2canvas(targetElement, {
+                    backgroundColor: "#0f172a",
+                    scale: 2,
+                    useCORS: true,
+                    logging: false
+                });
+
+                const link = document.createElement("a");
+                link.download = "תוצאת-חידון-יום-ההוקרה-לפצועי-צהל.png";
+                link.href = canvas.toDataURL("image/png");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                showToast("תמונת התוצאה נשמרה והורדה למחשב בהצלחה!");
+            } catch (err) {
+                console.error("Screenshot error:", err);
+                showToast("לא ניתן היה ליצור צילום מסך אוטומטי בדפדפן זה.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+            }
+        }
+
+        /**
+         * פתיחת מצב חזרה (Review Mode)
+         */
+        function openReviewMode() {
+            reviewIndex = 0;
+            showScreen("screen-review");
+            renderReviewQuestion();
+        }
+
+        /**
+         * חזרה ממסך החזרה למסך התוצאות
+         */
+        function backToResults() {
+            showScreen("screen-results");
+        }
+
+        /**
+         * ניווט קדימה ואחורה במצב החזרה
+         */
+        function navigateReview(direction) {
+            const nextIdx = reviewIndex + direction;
+            if (nextIdx >= 0 && nextIdx < userAnswers.length) {
+                reviewIndex = nextIdx;
+                renderReviewQuestion();
+            }
+        }
+
+        /**
+         * הצגת שאלה בודדת במצב חזרה כולל חיווי צבעוני ותיקון
+         */
+        function renderReviewQuestion() {
+            const record = userAnswers[reviewIndex];
+            const total = userAnswers.length;
+            const { questionObj, selectedIndex, isCorrect } = record;
+
+            // עדכון מונה שאלות
+            document.getElementById("review-counter").textContent = `שאלה ${reviewIndex + 1} מתוך ${total}`;
+
+            // חיווי ניקוד מצומצם בפינה: 10 נק' / 0 נק'
+            const pointBadge = document.getElementById("review-point-badge");
+            if (isCorrect) {
+                pointBadge.textContent = "10 נק'";
+                pointBadge.className = "px-3.5 py-1 rounded-xl font-extrabold text-sm border bg-emerald-500/20 border-emerald-400/60 text-emerald-300";
+            } else {
+                pointBadge.textContent = "0 נק'";
+                pointBadge.className = "px-3.5 py-1 rounded-xl font-extrabold text-sm border bg-rose-500/20 border-rose-400/60 text-rose-300";
+            }
+
+            // אנימציית מעבר חלקה
+            const cardBody = document.getElementById("review-card-body");
+            cardBody.classList.remove("fade-slide-in");
+            void cardBody.offsetWidth;
+            cardBody.classList.add("fade-slide-in");
+
+            // טקסט השאלה
+            document.getElementById("review-question-text").textContent = questionObj.question;
+
+            // רינדור אפשרויות התשובה עם החיווי הנדרש
+            const optionsList = document.getElementById("review-options-list");
+            optionsList.innerHTML = "";
+
+            questionObj.options.forEach((opt, idx) => {
+                const item = document.createElement("div");
+                item.className = "option-card disabled p-4 sm:p-5 flex items-center justify-between gap-3 cursor-default";
+
+                let statusIconHTML = "";
+
+                if (isCorrect && idx === selectedIndex) {
+                    // התלמיד צדק: התשובה תסומן בירוק
+                    item.classList.add("review-correct-selected");
+                    statusIconHTML = `<span class="text-xs sm:text-sm font-bold text-emerald-300 bg-emerald-950/60 px-3 py-1 rounded-full border border-emerald-400/40 shrink-0">✓ תשובתך נכונה</span>`;
+                } else if (!isCorrect && idx === selectedIndex) {
+                    // התלמיד טעה: התשובה שלו תסומן באדום
+                    item.classList.add("review-wrong-selected");
+                    statusIconHTML = `<span class="text-xs sm:text-sm font-bold text-rose-300 bg-rose-950/60 px-3 py-1 rounded-full border border-rose-400/40 shrink-0">✕ הבחירה שלך</span>`;
+                } else if (!isCorrect && opt.isCorrect) {
+                    // התשובה הנכונה תסומן בירוק בהיר/חיוור כדי שתבלוט כתיקון
+                    item.classList.add("review-correct-hint");
+                    statusIconHTML = `<span class="text-xs sm:text-sm font-bold text-emerald-200 bg-emerald-900/40 px-3 py-1 rounded-full border border-emerald-300/40 shrink-0">✓ התשובה הנכונה</span>`;
+                }
+
+                item.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <div class="letter-badge shrink-0">${HEBREW_LETTERS[idx]}</div>
+                        <div class="text-base sm:text-lg font-medium text-slate-100 leading-snug">${opt.text}</div>
+                    </div>
+                    ${statusIconHTML}
+                `;
+                optionsList.appendChild(item);
+            });
+
+            // עדכון הסבר קצר במקרא התחתון
+            const legendEl = document.getElementById("review-legend");
+            if (isCorrect) {
+                legendEl.innerHTML = `<span class="text-emerald-300 font-bold">✓ כל הכבוד!</span> בחרת בתשובה הנכונה וצברת 10 נקודות בשאלה זו.`;
+            } else {
+                legendEl.innerHTML = `<span class="text-rose-300 font-bold">✕ לא נורא:</span> תשובתך מסומנת באדום, והתשובה הנכונה מודגשת בירוק בהיר לעיונך.`;
+            }
+
+            // מצב כפתורי הניווט "הקודם" ו"הבא"
+            document.getElementById("btn-review-prev").disabled = (reviewIndex === 0);
+            document.getElementById("btn-review-next").disabled = (reviewIndex === total - 1);
+        }
+    </script>
+</body>
+</html>
+```
